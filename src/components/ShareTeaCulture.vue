@@ -2,9 +2,8 @@
   <el-card style="">
     <div style="height: auto; width: 100%; text-align: center; margin-bottom: 40px;">
       <span style="font-size: 24px;" v-if="tc.title">{{tc.title}}</span>
-      <el-divider>{{release_user.username}}
+      <el-divider>{{release_user.username}} &nbsp;&nbsp;发布于{{tc.date}}
       </el-divider>
-      <!-- <el-button size="small" style="margin-right: 24px;" type="primary">关注</el-button>{{tc.date}} -->
     </div>
     <el-text v-for="x in splited_article_arr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{x}}<br /></el-text>
     <div style="padding: 5px;" v-if="item.productId != -1">
@@ -12,21 +11,23 @@
       <ProductView :item="item" :current_user="user"></ProductView>
     </div>
     <template #footer>
-      评论
+      <div>
+        <p>评论</p>
+        <div style="display: flex; flex-direction: row; margin-bottom: 10px;">
+          <el-input v-model="comment_content"></el-input>
+          <el-button style="margin-left: 20px;" type="success" @click="send()">发送</el-button>
+          <el-button type="primary" @click="change_sort_way(3)">按点赞数降序排序</el-button>
+          <el-button type="primary" @click="change_sort_way(1)">按时间升序排序</el-button>
+          <el-button type="primary" @click="change_sort_way(2)">按时间降序排序</el-button>
+        </div>
+      </div>
+
       <el-scrollbar max-height="430px">
-        <TeaCultureDisplayComment v-if="comment_list != []" v-for="i in comment_list" :comment="i" :user="user">
+        <TeaCultureDisplayComment v-if="comment_list != []" v-for="i in comment_list" :comment="i" :user="user"
+          :key="i.commentId">
         </TeaCultureDisplayComment>
       </el-scrollbar>
     </template>
-    <!-- <div style="height: 450px;">
-      <hr />
-      评论
-      <el-scrollbar max-height="430px">
-        <TeaCultureDisplayComment v-if="comment_list != []" v-for="i in comment_list" :comment="i" :user="user">
-        </TeaCultureDisplayComment>
-      </el-scrollbar>
-
-    </div> -->
   </el-card>
 </template>
 
@@ -41,6 +42,9 @@
   import ProductView from './../components/productview.vue';
   import TeaCultureDisplayComment from './../components/TeaCultureDisplayComment.vue';
   import axios from "axios";
+  import {
+    ElMessage
+  } from 'element-plus'
 
 
 
@@ -58,7 +62,7 @@
 
   const user = ref(JSON.parse(localStorage.getItem("userInfo")));
   const tc = ref(JSON.parse(
-    `{"tcId":1,"userId":1,"teaProductId":2,"date":"2025-02-14T16:59:15.000+00:00","title":"好茶推荐！","paragraph":"茶韵悠悠，岁月凝香。","photo":"123123"}`
+    `{"tcId":1,"userId":1,"teaProductId":2,"date":"2025-02-14T16:59:15.000+00:00","title":"","paragraph":"茶韵悠悠，岁月凝香。","photo":"123123"}`
   ));
   const release_user = ref(JSON.parse(
     `{"userIsNotExist":false,"userId":26,"username":"1231123","passwordHash":"202cb962ac59075b964b07152d234b70","phoneNumber":"1231231","address":"2313132","userType":"customer"}`
@@ -98,16 +102,47 @@
       })
       await axios({
         method: 'get',
-        url: 'tea-culture/get-comments-by-tc-id/' + tc.value.tcId
+        url: 'tea-culture/get-comments-by-tc-id/' + tc.value.tcId + '/1'
       }).then((y) => {
         comment_list.value = y.data;
-
         console.log(comment_list.value);
       })
     }).catch(() => {
       console.log("/tea-culture/get-one-article error!");
     })
   })
+
+  const comment_content = ref(null);
+  const send = async () => {
+    await axios({
+      method: 'post',
+      url: '/tea-culture/insert-comment',
+      data: {
+        tc_id: tc.value.tcId,
+        user_id: user.value.userId,
+        content: comment_content.value
+      }
+    })
+
+    console.log(comment_content.value);
+    comment_content.value = "";
+    ElMessage({
+      message: '发送成功',
+      type: 'success',
+    });
+  }
+
+  const sorted_way = ref(1);
+  const change_sort_way = async (val) => {
+    sorted_way.value = val;
+    await axios({
+      method: 'get',
+      url: 'tea-culture/get-comments-by-tc-id/' + tc.value.tcId + '/' + val
+    }).then((y) => {
+      comment_list.value = y.data;
+      console.log(comment_list.value);
+    })
+  }
 </script>
 
 <style scoped>
