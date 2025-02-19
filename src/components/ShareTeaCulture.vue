@@ -6,6 +6,10 @@
       </el-divider>
     </div>
     <el-text v-for="x in splited_article_arr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {{x}}<br /></el-text>
+    <div style="text-align: center;">
+      <el-image style="width: 50%;" v-if="tc.photo != 'owo' &&  tc.photo != null" :src="tc.photo"></el-image>
+    </div>
+
     <div style="padding: 5px;" v-if="item.productId != -1">
       <hr />
       <ProductView :item="item" :current_user="user"></ProductView>
@@ -21,7 +25,6 @@
           <el-button type="primary" @click="change_sort_way(2)">按时间降序排序</el-button>
         </div>
       </div>
-
       <el-scrollbar max-height="430px">
         <TeaCultureDisplayComment v-if="comment_list != []" v-for="i in comment_list" :comment="i" :user="user"
           :key="i.commentId">
@@ -62,7 +65,7 @@
 
   const user = ref(JSON.parse(localStorage.getItem("userInfo")));
   const tc = ref(JSON.parse(
-    `{"tcId":1,"userId":1,"teaProductId":2,"date":"2025-02-14T16:59:15.000+00:00","title":"","paragraph":"茶韵悠悠，岁月凝香。","photo":"123123"}`
+    `{"tcId":1,"userId":1,"teaProductId":2,"date":"2025-02-14T16:59:15.000+00:00","title":"","paragraph":"茶韵悠悠，岁月凝香。","photo":"owo"}`
   ));
   const release_user = ref(JSON.parse(
     `{"userIsNotExist":false,"userId":26,"username":"1231123","passwordHash":"202cb962ac59075b964b07152d234b70","phoneNumber":"1231231","address":"2313132","userType":"customer"}`
@@ -89,10 +92,6 @@
           console.log("/tea/get-product-by-id/ error!");
         })
       }
-      await axios({
-        method: 'get',
-        url: '/user/select-id/' + tc.value.userId,
-      })
       await axios({
         method: 'get',
         url: '/user/select-id/' + tc.value.userId,
@@ -123,6 +122,7 @@
         content: comment_content.value
       }
     })
+    await change_sort_way(sorted_way.value);
 
     console.log(comment_content.value);
     comment_content.value = "";

@@ -7,6 +7,18 @@
         <el-main style="padding: 10px; border: 2px solid red;">
           <el-tabs :tab-position="tabPosition" class="demo-tabs">
 
+            <el-tab-pane label="订单管理">
+              <DisplayOrderDetail>
+
+              </DisplayOrderDetail>
+
+
+
+
+
+            </el-tab-pane>
+
+
             <el-tab-pane label="茶文化交流">
               <ShareTeaCultureVue></ShareTeaCultureVue>
             </el-tab-pane>
@@ -20,17 +32,17 @@
             </el-tab-pane>
             <el-tab-pane label="购物车">
               <el-button type="primary" @click="get_all_items_in_shopping_cart()">更新购物车</el-button>
-              <el-button type="primary" @click="()=>{get_all_selected_items();}">结算所有已勾选的订单</el-button>
+              <el-button type="primary" @click="buy_and_fresh()">结算所有已勾选的订单</el-button>
               <el-button type="primary" @click="delete_all()">移除所有已勾选的订单</el-button>
               <el-button type="info" @click="print()">打印所有数据</el-button>
               <el-divider></el-divider>
-              <el-scrollbar height="75vh" v-if="items_list_in_shopping_cart">
+              <el-scrollbar height="75vh" v-if="items_list_in_shopping_cart != []">
                 <ShoppingCartItem v-for="item in items_list_in_shopping_cart" :key="item.shoppingCartId" :item="item"
                   :current_user="the_current_user"></ShoppingCartItem>
               </el-scrollbar>
               <div style="height: 20vh; margin: 0px; padding: 0px;"></div>
             </el-tab-pane>
-            <el-tab-pane label="订单管理">订单管理</el-tab-pane>
+
             <el-tab-pane label="评价管理">评价管理</el-tab-pane>
 
             <el-tab-pane label="投诉管理">投诉管理</el-tab-pane>
@@ -46,6 +58,7 @@
   import ProductView from './../components/productview.vue';
   import ShoppingCartItem from './../components/ShoppingCartItem.vue';
   import ShareTeaCultureVue from '../components/ShareTeaCulture.vue';
+  import DisplayOrderDetail from '../components/DisplayOrderDetail.vue';
   import { ref, onMounted, provide, getCurrentInstance, onUnmounted } from 'vue';
   import axios from 'axios';
   axios.defaults.baseURL = 'http://localhost:9099/';
@@ -54,6 +67,7 @@
     ElMessage,
     ElMessageBox
   } from 'element-plus'
+  import { settleOrder } from './../JS/AboutOrder.js';
   const tabPosition = ref<TabsInstance['tabPosition']>('right');
 
   async function wait(ms : number) {
@@ -77,7 +91,7 @@
     finally {
       await wait(1000);
     }
-    await get_all_items_in_shopping_cart();
+    get_all_items_in_shopping_cart();
   })
 
   const all_selected_items = ref([])
@@ -118,31 +132,31 @@
 
   }
 
-  const del_this = async () => {
-    await get_all_items_in_shopping_cart().then(() => {
-      ElMessage({
-        type: 'success',
-        message: `删除成功`,
-      })
-    })
+  const del_this = () => {
+    get_all_items_in_shopping_cart();
   };
 
   provide("del_this", del_this);
+
+  const buy_and_fresh = async () => {
+    settleOrder(the_current_user.value.userId, get_all_items_in_shopping_cart);
+  }
+
 
   const print = () => {
     console.log(items_list_in_shopping_cart.value);
   }
 
   const items_list_in_shopping_cart = ref([]);
-  const get_all_items_in_shopping_cart = async () => {
-    await axios({
+  const get_all_items_in_shopping_cart = () => {
+    axios({
       method: 'get',
       url: '/shopping-cart/get-all-items-by-id/' + the_current_user.value.userId
     }).then((res) => {
       items_list_in_shopping_cart.value = res.data;
       console.log(res.data)
     })
-    await wait(1000);
+
   }
 </script>
 
