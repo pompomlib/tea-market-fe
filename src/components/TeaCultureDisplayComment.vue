@@ -23,6 +23,8 @@
     },
   })
 
+
+
   const user = ref(JSON.parse(
     `{"userIsNotExist":false,"userId":26,"username":"1231123","passwordHash":"202cb962ac59075b964b07152d234b70","phoneNumber":"1231231","address":"2313132","userType":"customer"}`
   ));

@@ -66,8 +66,8 @@
           <el-text v-for="x in item.productInfoList" :key="x.name">
             产品：{{x.name}} <br />
             包装方式：{{x.packageStyle}} <br />数量：{{x.quantity}} <br />单价：{{x.price}} 总价格：{{x.price * x.quantity}}
-            <br />
-            描述：{{x.description}}
+
+            <!-- 描述：{{x.description}} -->
             <hr />
           </el-text>
           <div style="text-align: right;">

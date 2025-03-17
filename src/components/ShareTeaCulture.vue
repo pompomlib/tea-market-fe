@@ -37,7 +37,9 @@
 <script setup>
   import {
     onMounted,
-    ref
+    ref,
+    defineModel,
+    watch
   } from "vue";
   import {
     get_splited_article
@@ -63,6 +65,7 @@
     description: "1231231",
   })
 
+
   const user = ref(JSON.parse(localStorage.getItem("userInfo")));
   const tc = ref(JSON.parse(
     `{"tcId":1,"userId":1,"teaProductId":2,"date":"2025-02-14T16:59:15.000+00:00","title":"","paragraph":"茶韵悠悠，岁月凝香。","photo":"owo"}`
@@ -72,11 +75,14 @@
   ));
 
   const comment_list = ref([]);
+  const tc_index = defineModel('tc_index');
+
 
   onMounted(async () => {
+    console.log("onMounted: " + tc_index.value);
     await axios({
       method: 'get',
-      url: '/tea-culture/get-one-article'
+      url: '/tea-culture/get-arcticle-by/' + tc_index.value,
     }).then(async (res) => {
       tc.value = res.data;
       console.log(tc.value);
@@ -110,6 +116,44 @@
       console.log("/tea-culture/get-one-article error!");
     })
   })
+
+  watch(tc_index, async (new_v, old_v) => {
+    await axios({
+      method: 'get',
+      url: '/tea-culture/get-arcticle-by/' + new_v,
+    }).then(async (res) => {
+      tc.value = res.data;
+      console.log(tc.value);
+      splited_article_arr.value = get_splited_article(tc.value.paragraph)
+      if (res.data.teaProductId != null) {
+        await axios({
+          method: 'get',
+          url: '/tea/get-product-by-id/' + res.data.teaProductId
+        }).then((r) => {
+          item.value = r.data;
+          console.log(item.value);
+        }).catch(() => {
+          console.log("/tea/get-product-by-id/ error!");
+        })
+      }
+      await axios({
+        method: 'get',
+        url: '/user/select-id/' + tc.value.userId,
+      }).then((x) => {
+        release_user.value = x.data;
+        console.log();
+      })
+      await axios({
+        method: 'get',
+        url: 'tea-culture/get-comments-by-tc-id/' + tc.value.tcId + '/1'
+      }).then((y) => {
+        comment_list.value = y.data;
+        console.log(comment_list.value);
+      })
+    }).catch(() => {
+      console.log("/tea-culture/get-one-article error!");
+    })
+  });
 
   const comment_content = ref(null);
   const send = async () => {
